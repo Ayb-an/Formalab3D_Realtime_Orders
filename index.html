@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FormaLab3d Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9e6df;--panel:#f6f4ef;--ink:#1d1f1e;--mute:#6b6f6c;--line:#cfcbc1;--accent:#1f5c4d;--accent-ink:#fff;
+--np-bg:#f9d9d5;--np-ink:#8a2a20;--dp-bg:#fbe8b8;--dp-ink:#6b4b00;--fp-bg:#cfeadf;--fp-ink:#14573f;
+padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151716;--panel:#1e2120;--ink:#e8e8e3;--mute:#9aa09c;--line:#363b39;--accent:#6fd0b3;--accent-ink:#0d1f1a;
+--np-bg:#4a2220;--np-ink:#ffb3a8;--dp-bg:#4a3a12;--dp-ink:#ffd978;--fp-bg:#163b2f;--fp-ink:#8fe3c1;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#151716;--panel:#1e2120;--ink:#e8e8e3;--mute:#9aa09c;--line:#363b39;--accent:#6fd0b3;--accent-ink:#0d1f1a;
+--np-bg:#4a2220;--np-ink:#ffb3a8;--dp-bg:#4a3a12;--dp-ink:#ffd978;--fp-bg:#163b2f;--fp-ink:#8fe3c1;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "IBM Plex Sans",system-ui,sans-serif}
+.page{max-width:1180px;margin:0 auto;padding:16px 16px 48px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.brand{font:800 24px/1.1 "JetBrains Mono",ui-monospace,Consolas,monospace;color:#1aa879}.brand b{color:#f4685b;font-weight:800}
+.badge{font-size:12.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--mute)}
+.badge.live{color:var(--fp-ink);background:var(--fp-bg);border-color:transparent}
+.badge.local{color:var(--dp-ink);background:var(--dp-bg);border-color:transparent}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start}
+@media (max-width:920px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px}
+h2{font-size:17px;margin:0;font-weight:600}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--mute);margin-top:10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.np{background:var(--np-bg);color:var(--np-ink)}.dp{background:var(--dp-bg);color:var(--dp-ink)}.fp{background:var(--fp-bg);color:var(--fp-ink)}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.dow{font-size:12px;color:var(--mute);text-align:center;padding:2px 0}
+.cell{min-height:92px;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:4px;padding:4px;display:flex;flex-direction:column;gap:2px;overflow:hidden;color:var(--ink);font:inherit}
+.cell.out{opacity:.45}.cell.today .dn{background:var(--accent);color:var(--accent-ink)}
+.cell.sel{outline:2px solid var(--accent);outline-offset:-1px}
+.dn{font-size:12.5px;font-weight:600;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.chip{font-size:11px;line-height:1.25;padding:1px 4px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.more{font-size:11px;color:var(--mute)}
+@media (max-width:620px){.cell{min-height:58px}.chip{height:6px;padding:0;font-size:0;border-radius:3px}.more{font-size:10px}}
+button{font:inherit;cursor:pointer;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:6px 11px}
+button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cell{padding:4px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+label{display:block;font-size:12.5px;color:var(--mute);margin-bottom:3px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 8px;min-width:0}
+textarea{resize:vertical;min-height:54px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f{margin-bottom:10px}
+.entry{border:1px solid var(--line);border-radius:5px;padding:10px;margin-bottom:8px;background:var(--bg)}
+.entry .t{font-weight:600}.entry .s{color:var(--mute);font-size:13px}
+.entry .acts{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.entry select{width:auto;padding:4px 6px;font-size:13.5px}
+.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;font-weight:500}
+.warn{font-size:12px;color:var(--np-ink);background:var(--np-bg);padding:1px 6px;border-radius:3px;margin-left:6px}
+.empty{color:var(--mute);font-size:14px;padding:6px 0 12px}
+.hint{font-size:12.5px;color:var(--mute)}
+.orders{margin-top:18px}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.filters button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:700px}
+th,td{text-align:left;padding:8px 8px;border-top:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;color:var(--mute);font-weight:500;border-top:0}
+td select{width:auto;padding:4px 6px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace;font-size:13px}
+.rlink{background:none;border:0;padding:0;margin:0;color:var(--accent);font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.rlink:hover{opacity:.85}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.ov.on{display:flex}
+.ovbox{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;max-height:100%;overflow:auto;width:min(100%,520px);padding:14px}
+.ovhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.ovhead h3{margin:0;font-size:16px}
+.rpaper{background:#fffefa;color:#222;padding:18px 14px;border-radius:2px;overflow-x:auto;box-shadow:0 1px 0 var(--line),0 6px 18px rgba(0,0,0,.12)}
+.rpaper pre{margin:0;font:12.5px/1.5 "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre}
+@media print{body.receipt-open>*:not(#rov){display:none!important}body.receipt-open #rov{position:static;display:block;padding:0;background:#fff}body.receipt-open #rov .ovbox{border:0;padding:0;width:auto;max-height:none;overflow:visible}body.receipt-open #rov .ovhead{display:none!important}body.receipt-open #rov .rpaper{box-shadow:none;padding:0}}
+</style>
+</head>
+<body>
+<div class="page">
+ <div class="top">
+  <div class="brand"><b>Forma</b>Lab3d</div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span id="badge" class="badge"></span></div>
+ </div>
+
+ <div class="layout">
+  <section class="panel">
+   <div class="bar">
+    <h2 id="mtitle"></h2>
+    <div style="display:flex;gap:6px">
+     <button id="prev" aria-label="Previous month">&larr;</button>
+     <button id="today">Today</button>
+     <button id="next" aria-label="Next month">&rarr;</button>
+    </div>
+   </div>
+   <div class="grid" id="cal"></div>
+   <div class="legend">
+    <span><span class="dot" style="background:var(--np-ink)"></span>Not paid</span>
+    <span><span class="dot" style="background:var(--dp-ink)"></span>Down payment</span>
+    <span><span class="dot" style="background:var(--fp-ink)"></span>Fully paid</span>
+   </div>
+  </section>
+
+  <aside class="panel">
+   <h2 id="dtitle"></h2>
+   <div id="dlist" style="margin-top:10px"></div>
+   <h2 id="ftitle" style="font-size:15px;margin:14px 0 8px">Add schedule</h2>
+   <form id="form" autocomplete="off">
+    <div class="g2 f">
+     <div><label for="fdate">Start date</label><input id="fdate" type="date" required></div>
+     <div><label for="fstart">Start time</label><input id="fstart" type="time" required></div>
+    </div>
+    <div class="g2 f">
+     <div><label for="fenddate">End date</label><input id="fenddate" type="date" required></div>
+     <div><label for="fend">End time</label><input id="fend" type="time" required></div>
+    </div>
+    <div class="f"><label for="fby">Added by</label><input id="fby" placeholder="Your name" required></div>
+    <div class="f"><label for="ford">Link to confirmed order (optional)</label><select id="ford"></select></div>
+    <div class="f"><label for="fcust">Customer</label><input id="fcust" required></div>
+    <div class="f"><label for="fprint">What is being printed</label><input id="fprint" placeholder="e.g. Phone stand, PLA"></div>
+    <div class="f"><label for="fstat">Payment status</label><select id="fstat"></select><div class="hint" id="fhint" hidden>Status follows the linked order.</div></div>
+    <div class="f"><label for="fnote">Notes</label><textarea id="fnote"></textarea></div>
+    <div style="display:flex;gap:8px">
+     <button class="pri" id="fsave" type="submit">Add schedule</button>
+     <button id="fcancel" type="button" hidden>Cancel edit</button>
+    </div>
+   </form>
+  </aside>
+ </div>
+
+ <section class="panel orders">
+  <div class="bar">
+   <h2>Confirmed orders</h2>
+   <div class="filters" id="filters"></div>
+  </div>
+  <div class="tw"><table>
+   <thead><tr><th>Receipt no.</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Schedule</th><th>Status</th></tr></thead>
+   <tbody id="otb"></tbody>
+  </table></div>
+  <div class="hint" style="margin-top:8px">Orders appear here automatically when they are confirmed. Either of you can update the payment status.</div>
+ </section>
+</div>
+
+<div class="ov noprint" id="rov" aria-hidden="true">
+ <div class="ovbox" role="dialog" aria-modal="true" aria-labelledby="rtitle">
+  <div class="ovhead">
+   <h3 id="rtitle">Receipt</h3>
+   <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button type="button" id="rprint">Print</button>
+    <button type="button" id="rclose">Close</button>
+   </div>
+  </div>
+  <div class="rpaper"><div class="brand" style="width:max-content;margin:0 auto 10px;font-size:24px"><b>Forma</b>Lab3d</div><pre id="rout"></pre></div>
+ </div>
+</div>
+
+<script type="module">
+import { store } from "./store.js";
+const $ = id => document.getElementById(id);
+const p2 = n => String(n).padStart(2, "0");
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ymd = d => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());
+const peso = n => "₱" + (Math.round((+n || 0) * 100) / 100).toLocaleString("en-PH", { maximumFractionDigits: 2 });
+const fmtT = t => { if (!t) return ""; const [h, m] = t.split(":").map(Number); return ((h % 12) || 12) + ":" + p2(m) + (h < 12 ? "a" : "p"); };
+const STATUS = ["Not paid", "Down payment", "Fully paid"];
+const SC = { "Not paid": "np", "Down payment": "dp", "Fully paid": "fp" };
+const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+let schedules = [], orders = [], filter = "All", editId = null;
+let view = new Date(); view.setDate(1);
+let sel = ymd(new Date());
+
+$("badge").textContent = store.live ? "Live · shared" : "Local test mode · not shared yet";
+$("badge").className = "badge " + (store.live ? "live" : "local");
+$("fstat").innerHTML = STATUS.map(s => `<option>${s}</option>`).join("");
+try { $("fby").value = localStorage.getItem("fl3d-by") || ""; } catch (e) {}
+
+const orderOf = id => orders.find(o => o.id === id);
+const statusOf = s => { const o = s.orderId && orderOf(s.orderId); return o ? (o.status || "Not paid") : (s.status || "Not paid"); };
+const endDateOf = s => s.endDate || s.date;
+const startDT = s => (s.date || "") + "T" + (s.start || "00:00");
+const endDT = s => endDateOf(s) + "T" + (s.end || "00:00");
+const spansDay = (s, k) => !!s.date && s.date <= k && k <= endDateOf(s);
+const byDate = k => schedules.filter(s => spansDay(s, k)).sort((a, b) => {
+  const ak = a.date === k ? (a.start || "") : "00:00", bk = b.date === k ? (b.start || "") : "00:00";
+  return ak.localeCompare(bk) || startDT(a).localeCompare(startDT(b));
+});
+
+function renderCal() {
+  const y = view.getFullYear(), m = view.getMonth();
+  $("mtitle").textContent = view.toLocaleDateString("en-PH", { month: "long", year: "numeric" });
+  const start = new Date(y, m, 1 - new Date(y, m, 1).getDay());
+  const today = ymd(new Date());
+  let h = DOW.map(d => `<div class="dow">${d}</div>`).join("");
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), es = byDate(k);
+    h += `<button type="button" class="cell${d.getMonth() !== m ? " out" : ""}${k === today ? " today" : ""}${k === sel ? " sel" : ""}" data-d="${k}"><span class="dn">${d.getDate()}</span>` +
+      es.slice(0, 3).map(e => `<span class="chip ${SC[statusOf(e)]}">${e.date === k ? fmtT(e.start) : "↳"} ${esc(e.customer)}</span>`).join("") +
+      (es.length > 3 ? `<span class="more">+${es.length - 3} more</span>` : "") + `</button>`;
+  }
+  $("cal").innerHTML = h;
+}
+
+function overlaps(e) {
+  const a = startDT(e), b = endDT(e);
+  return schedules.some(o => o.id !== e.id && a < endDT(o) && startDT(o) < b);
+}
+
+function renderDay() {
+  $("dtitle").textContent = new Date(sel + "T00:00").toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const es = byDate(sel);
+  if (!es.length) { $("dlist").innerHTML = '<div class="empty">Nothing scheduled this day.</div>'; return; }
+  $("dlist").innerHTML = es.map(e => {
+    const st = statusOf(e), linked = e.orderId && orderOf(e.orderId);
+    const ed = endDateOf(e), multi = ed !== e.date;
+    const when = multi ? `${esc(e.date)} ${fmtT(e.start)} – ${esc(ed)} ${fmtT(e.end)}` : `${fmtT(e.start)} – ${fmtT(e.end)}`;
+    return `<div class="entry" data-id="${e.id}">
+      <div class="t">${when} · ${esc(e.customer)}${overlaps(e) ? '<span class="warn">overlaps</span>' : ""}</div>
+      <div class="s">${esc(e.print || "")}${linked ? (e.print ? " · " : "") + "Order " + esc(linked.receiptNo) : ""}${multi ? (e.print || linked ? " · " : "") + "Ends " + esc(ed) : ""}</div>
+      ${e.notes ? `<div class="s">${esc(e.notes)}</div>` : ""}
+      <div class="s">Added by ${esc(e.by || "?")}</div>
+      <div class="acts">
+        <select data-st="${e.id}" class="pill ${SC[st]}" aria-label="Payment status">${STATUS.map(s => `<option${s === st ? " selected" : ""}>${s}</option>`).join("")}</select>
+        <button type="button" data-edit="${e.id}">Edit</button>
+        <button type="button" data-del="${e.id}">Delete</button>
+      </div></div>`;
+  }).join("");
+}
+
+function renderOrderSelect() {
+  const cur = $("ford").value;
+  const list = orders.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  $("ford").innerHTML = '<option value="">None</option>' + list.map(o => `<option value="${o.id}">${esc(o.receiptNo)} · ${esc(o.customer || "No name")}</option>`).join("");
+  $("ford").value = list.some(o => o.id === cur) ? cur : "";
+  syncStatusField();
+}
+
+function syncStatusField() {
+  const o = orderOf($("ford").value);
+  $("fstat").disabled = !!o; $("fhint").hidden = !o;
+  if (o) $("fstat").value = o.status || "Not paid";
+}
+
+function renderOrders() {
+  $("filters").innerHTML = ["All", ...STATUS].map(f => `<button type="button" data-f="${f}" class="${f === filter ? "on" : ""}">${f}</button>`).join("");
+  const list = orders.filter(o => filter === "All" || (o.status || "Not paid") === filter)
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  if (!list.length) { $("otb").innerHTML = '<tr><td colspan="7" class="empty">No orders to show.</td></tr>'; return; }
+  $("otb").innerHTML = list.map(o => {
+    const st = o.status || "Not paid";
+    const sc = schedules.filter(s => s.orderId === o.id).sort((a, b) => startDT(a).localeCompare(startDT(b)))[0];
+    const items = (o.items || []).map(i => esc(i.name)).join(", ");
+    const scWhen = sc ? (endDateOf(sc) !== sc.date ? `${esc(sc.date)} ${fmtT(sc.start)} – ${esc(endDateOf(sc))} ${fmtT(sc.end)}` : `${esc(sc.date)} ${fmtT(sc.start)}`) : "";
+    return `<tr><td class="mono"><button type="button" class="rlink" data-view="${o.id}">${esc(o.receiptNo)}</button></td><td>${esc(o.date || "")}</td><td>${esc(o.customer || "")}</td><td>${items}</td><td>${peso(o.total)}</td>
+      <td>${sc ? scWhen : '<span class="hint">Not scheduled</span>'}</td>
+      <td><select data-ost="${o.id}" class="pill ${SC[st]}" aria-label="Payment status">${STATUS.map(s => `<option${s === st ? " selected" : ""}>${s}</option>`).join("")}</select></td></tr>`;
+  }).join("");
+}
+
+function renderAll() { renderCal(); renderDay(); renderOrders(); }
+
+function resetForm() {
+  editId = null;
+  $("form").reset();
+  try { $("fby").value = localStorage.getItem("fl3d-by") || ""; } catch (e) {}
+  $("fdate").value = sel;
+  $("fenddate").value = sel;
+  $("ford").value = ""; syncStatusField();
+  $("ftitle").textContent = "Add schedule"; $("fsave").textContent = "Add schedule"; $("fcancel").hidden = true;
+}
+
+store.subscribe("schedules", l => { schedules = l; renderAll(); });
+store.subscribe("orders", l => { orders = l; renderOrderSelect(); renderAll(); });
+
+$("prev").onclick = () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); };
+$("next").onclick = () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); };
+$("today").onclick = () => { const n = new Date(); view = new Date(n.getFullYear(), n.getMonth(), 1); sel = ymd(n); if (!editId) { $("fdate").value = sel; $("fenddate").value = sel; } renderAll(); };
+
+$("cal").addEventListener("click", e => {
+  const c = e.target.closest("[data-d]"); if (!c) return;
+  sel = c.getAttribute("data-d");
+  const d = new Date(sel + "T00:00");
+  if (d.getMonth() !== view.getMonth()) view = new Date(d.getFullYear(), d.getMonth(), 1);
+  if (!editId) { $("fdate").value = sel; $("fenddate").value = sel; }
+  renderAll();
+});
+
+$("dlist").addEventListener("change", async e => {
+  const id = e.target.getAttribute("data-st"); if (!id) return;
+  const s = schedules.find(x => x.id === id); if (!s) return;
+  try {
+    if (s.orderId && orderOf(s.orderId)) await store.update("orders", s.orderId, { status: e.target.value });
+    else await store.update("schedules", id, { status: e.target.value });
+  } catch (err) { alert("Could not save: " + err.message); }
+});
+$("dlist").addEventListener("click", async e => {
+  const ed = e.target.getAttribute("data-edit"), del = e.target.getAttribute("data-del");
+  if (ed) {
+    const s = schedules.find(x => x.id === ed); if (!s) return;
+    editId = ed;
+    $("fdate").value = s.date; $("fstart").value = s.start; $("fenddate").value = endDateOf(s); $("fend").value = s.end;
+    $("fcust").value = s.customer || ""; $("fprint").value = s.print || ""; $("fnote").value = s.notes || "";
+    $("fby").value = s.by || $("fby").value; $("ford").value = s.orderId && orderOf(s.orderId) ? s.orderId : "";
+    $("fstat").value = s.status || "Not paid"; syncStatusField();
+    $("ftitle").textContent = "Edit schedule"; $("fsave").textContent = "Save changes"; $("fcancel").hidden = false;
+    $("form").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  if (del && confirm("Delete this schedule?")) {
+    try { await store.remove("schedules", del); if (editId === del) resetForm(); } catch (err) { alert("Could not delete: " + err.message); }
+  }
+});
+
+$("ford").addEventListener("change", () => {
+  const o = orderOf($("ford").value);
+  if (o) {
+    if (!$("fcust").value) $("fcust").value = o.customer || "";
+    if (!$("fprint").value) $("fprint").value = (o.items || []).map(i => i.name).join(", ");
+  }
+  syncStatusField();
+});
+$("fcancel").onclick = resetForm;
+$("fdate").addEventListener("change", () => { if (!$("fenddate").value || $("fenddate").value < $("fdate").value) $("fenddate").value = $("fdate").value; });
+
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const sd = $("fdate").value, ed = $("fenddate").value, st = $("fstart").value, en = $("fend").value;
+  if (!ed) { alert("Please choose an end date."); return; }
+  if (ed < sd || (ed === sd && en <= st)) { alert("End date/time must be after the start date/time."); return; }
+  const by = $("fby").value.trim();
+  try { localStorage.setItem("fl3d-by", by); } catch (x) {}
+  const o = orderOf($("ford").value);
+  const data = {
+    date: sd, start: st, endDate: ed, end: en,
+    customer: $("fcust").value.trim(), print: $("fprint").value.trim(), notes: $("fnote").value.trim(),
+    orderId: o ? o.id : "", status: o ? (o.status || "Not paid") : $("fstat").value, by
+  };
+  try {
+    if (editId) await store.update("schedules", editId, data); else await store.add("schedules", data);
+    sel = data.date;
+    const d = new Date(sel + "T00:00"); view = new Date(d.getFullYear(), d.getMonth(), 1);
+    resetForm(); renderAll();
+  } catch (err) { alert("Could not save: " + err.message); }
+});
+
+$("filters").addEventListener("click", e => {
+  const f = e.target.getAttribute("data-f"); if (!f) return;
+  filter = f; renderOrders();
+});
+function receiptFallback(o) {
+  const bar = "-".repeat(38), dbl = "=".repeat(38);
+  const lr = (l, r) => { const sp = 38 - String(l).length - String(r).length; return String(l) + " ".repeat(sp > 0 ? sp : 1) + String(r); };
+  const out = [dbl, lr("Order", o.receiptNo || "-"), lr("Date", o.date || "-")];
+  if (o.customer) out.push(lr("Customer", o.customer));
+  if (o.servedBy) out.push(lr("Served by", o.servedBy));
+  out.push(bar);
+  (o.items || []).forEach(it => { out.push(it.name || "Item"); if (it.detail) out.push("  " + it.detail); });
+  out.push(bar, lr("TOTAL", peso(o.total)), lr("Status", o.status || "Not paid"), dbl, "", " ".repeat(14) + "Thank you!");
+  return out.join("\n");
+}
+function openReceipt(id) {
+  const o = orderOf(id); if (!o) return;
+  $("rtitle").textContent = "Receipt " + (o.receiptNo || "");
+  $("rout").textContent = o.receiptText || receiptFallback(o);
+  $("rov").classList.add("on");
+  $("rov").setAttribute("aria-hidden", "false");
+  document.body.classList.add("receipt-open");
+  $("rclose").focus();
+}
+function closeReceipt() {
+  $("rov").classList.remove("on");
+  $("rov").setAttribute("aria-hidden", "true");
+  document.body.classList.remove("receipt-open");
+}
+$("otb").addEventListener("change", async e => {
+  const id = e.target.getAttribute("data-ost"); if (!id) return;
+  try { await store.update("orders", id, { status: e.target.value }); } catch (err) { alert("Could not save: " + err.message); }
+});
+$("otb").addEventListener("click", e => {
+  const btn = e.target.closest("[data-view]"); if (!btn) return;
+  openReceipt(btn.getAttribute("data-view"));
+});
+$("rclose").onclick = closeReceipt;
+$("rprint").onclick = () => window.print();
+$("rov").addEventListener("click", e => { if (e.target === $("rov")) closeReceipt(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("rov").classList.contains("on")) closeReceipt(); });
+
+resetForm(); renderAll();
+</script>
+</body>
+</html>
